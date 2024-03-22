@@ -18,7 +18,6 @@ final class Camera: NSObject, AVCapturePhotoCaptureDelegate {
     private var output = AVCapturePhotoOutput()
     private var position: AVCaptureDevice.Position = .back
 
-    private(set) var isCameraAuthorized: Bool?
     private(set) var isTaken = false
     private(set) var useFlash = false
     private(set) var session = AVCaptureSession()
