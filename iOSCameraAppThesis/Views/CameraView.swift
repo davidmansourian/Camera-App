@@ -8,14 +8,15 @@
 import SwiftUI
 
 struct CameraView: View {
-    @State private var camera = CameraModel()
+    @State private var camera = Camera()
     @State private var bannerText: String?
     @State private var isSaving = false
     @State private var isSaveSuccess = false
     
     var body: some View {
         Group {
-            if let isAuthorized = camera.isCameraAuthorized, isAuthorized {
+            switch camera.state {
+            case .authorized:
                 ZStack {
                     Color.black
                         .ignoresSafeArea(.all)
@@ -23,9 +24,7 @@ struct CameraView: View {
                     CameraPreview(camera: camera)
                         .ignoresSafeArea(.all)
                         .cornerRadius(20)
-                        .onTapGesture(count: 2) {
-                            switchCamera()
-                        }
+                        .onTapGesture(count: 2, perform: switchCamera)
                     
                     VStack {
                         if let notice = bannerText {
@@ -44,7 +43,6 @@ struct CameraView: View {
                                 }
                         }
                         
-                        
                         VStack {
                             if camera.isTaken, !isSaving {
                                 discardPhotoButton
@@ -54,7 +52,7 @@ struct CameraView: View {
                         }
                         .padding()
                         .frame(maxWidth: .infinity, alignment: camera.isTaken ? .leading : .trailing)
-                                        
+                        
                         Spacer()
                         
                         HStack {
@@ -68,10 +66,10 @@ struct CameraView: View {
                         .padding()
                     }
                 }
-            } else {
+            case .unknown, .notAuthorized, .noDeviceFound:
                 ContentUnavailableView("Couldn't use Camera",
                                        systemImage: "gear",
-                                       description: Text("To use the camera, please enable camera access in your phone's Settings."))
+                                       description: Text(camera.state.description))
             }
         }
     }
@@ -79,46 +77,42 @@ struct CameraView: View {
 
 extension CameraView {
     private var discardPhotoButton: some View {
-        Button(action: {
-            camera.retakePhoto()
-        }, label: {
+        Button(action: camera.retakePhoto) {
             Text("X")
                 .foregroundStyle(.white)
                 .font(.title)
                 .fontWeight(.semibold)
-        })
+        }
         .buttonStyle(.plain)
     }
     
     private var toggleFlashButton: some View {
-        Button(action: {camera.toggleFlashMode()}, label: {
+        Button(action: camera.toggleFlashMode) {
             Image(systemName: camera.useFlash ? "bolt.fill" : "bolt.slash.fill")
                 .foregroundStyle(.white)
                 .font(.title)
                 .fontWeight(.semibold)
-        })
+        }
         .padding(.trailing, 5)
     }
     
     private var capturePhotoButton: some View {
-        Button(action: {camera.capturePhoto()}, label: {
+        Button(action: camera.capturePhoto) {
             Circle()
                 .strokeBorder(Color.white, lineWidth: 6)
                 .frame(width: 80, height: 80)
-        })
+        }
     }
     
     private var saveToCameraRollButton: some View {
-        Button(action: {
-            Task { await handleSave() }
-        }, label: {
+        Button(action: save) {
             Image(systemName: "square.and.arrow.down")
                 .font(.system(size: 30))
                 .padding(10)
                 .foregroundStyle(.black)
                 .background(.white)
                 .clipShape(Circle())
-        })
+        }
         .buttonStyle(.plain)
         .padding(.leading)
     }
@@ -131,45 +125,31 @@ extension CameraView {
         }
     }
     
-    private func handleSave() async {
-        let result = await camera.savePhotoCapture()
-        isSaveSuccess = result.isSuccess
-        
-        switch result {
-        case .success(let successMessage):
-            camera.retakePhoto()
-            toggleBanner(successMessage)
-        case .failure(let error):
-            if let saveError = error as? CameraModel.SaveError {
-                toggleBanner(saveError.customDescription)
+    private func save() {
+        Task {
+            isSaving = true
+            do {
+                try await camera.savePhotoCapture()
+                isSaveSuccess = true
+                camera.retakePhoto()
+                await show(bannerText: "Photo was saved to camera roll")
+            } catch {
+                isSaveSuccess = false
+                await show(bannerText: error.localizedDescription)
             }
+            isSaving = false
         }
     }
     
-    private func toggleBanner(_ bannerText: String) {
-        Task {
-            withAnimation {
-                isSaving.toggle()
-                self.bannerText = bannerText
-            }
-            
-            try await Task.sleep(nanoseconds: 2_000_000_000)
-            
-            withAnimation {
-                self.bannerText = nil
-                isSaving.toggle()
-            }
+    private func show(bannerText: String, duration: Int = 2) async {
+        withAnimation {
+            self.bannerText = bannerText
         }
-    }
-}
-
-extension Result {
-    var isSuccess: Bool {
-        switch self {
-        case .success:
-            return true
-        case .failure:
-            return false
+        
+        try? await Task.sleep(nanoseconds: UInt64(duration * 1_000_000_000))
+        
+        withAnimation {
+            self.bannerText = nil
         }
     }
 }

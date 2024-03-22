@@ -11,7 +11,7 @@ import SwiftUI
 
 
 struct CameraPreview: UIViewRepresentable {
-    let camera: CameraModel
+    let camera: Camera
     
     func makeUIView(context: Context) -> UIView {
         let view = UIView(frame: UIScreen.main.bounds)

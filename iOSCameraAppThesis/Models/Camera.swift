@@ -10,7 +10,7 @@ import Foundation
 import Photos
 
 @Observable
-final class CameraModel: NSObject, AVCapturePhotoCaptureDelegate {
+final class Camera: NSObject, AVCapturePhotoCaptureDelegate {
     public var preview: AVCaptureVideoPreviewLayer!
         
     private var capturedPhotoData: Data?
@@ -22,6 +22,7 @@ final class CameraModel: NSObject, AVCapturePhotoCaptureDelegate {
     private(set) var isTaken = false
     private(set) var useFlash = false
     private(set) var session = AVCaptureSession()
+    private(set) var state: State = .unknown
     
     
     override init() {
@@ -43,7 +44,8 @@ final class CameraModel: NSObject, AVCapturePhotoCaptureDelegate {
                 isAuthorized = await AVCaptureDevice.requestAccess(for: .video)
             }
             
-            self.isCameraAuthorized = isAuthorized
+            state = isAuthorized ? .authorized : .notAuthorized
+            
             return isAuthorized
         }
     }
@@ -71,7 +73,10 @@ final class CameraModel: NSObject, AVCapturePhotoCaptureDelegate {
             for input in session.inputs { session.removeInput(input) }
             for output in session.outputs { session.removeOutput(output) }
             
-            guard let device = bestDevice else { return }
+            guard let device = bestDevice else {
+                state = .noDeviceFound
+                return
+            }
             currentDevice = device
             let input = try AVCaptureDeviceInput(device: device)
             
@@ -107,7 +112,7 @@ final class CameraModel: NSObject, AVCapturePhotoCaptureDelegate {
         case .front:
             photoSettings.flashMode = .on
         @unknown default:
-            print("Unknown case")
+            fatalError("Unknown camera position found")
         }
         
         return photoSettings
@@ -160,8 +165,6 @@ final class CameraModel: NSObject, AVCapturePhotoCaptureDelegate {
         
         session.stopRunning()
         
-        print("photo taken")
-        
         guard let imageData = photo.fileDataRepresentation() else { return }
         capturedPhotoData = imageData
         
@@ -169,8 +172,8 @@ final class CameraModel: NSObject, AVCapturePhotoCaptureDelegate {
     
     
     
-    public func savePhotoCapture() async -> Result<String, Error> {
-        guard await isPhotoLibraryReadWriteAccessGranted else { return .failure(SaveError.notAuhtorized) }
+    public func savePhotoCapture() async throws {
+        guard await isPhotoLibraryReadWriteAccessGranted else { throw SaveError.notAuhtorized }
         
         if let photoData = capturedPhotoData {
             do {
@@ -178,22 +181,20 @@ final class CameraModel: NSObject, AVCapturePhotoCaptureDelegate {
                     let creationRequest = PHAssetCreationRequest.forAsset()
                     creationRequest.addResource(with: .photo, data: photoData, options: nil)
                 }
-                return .success("Photo was saved to camera roll")
             } catch {
-                print("error saving photo to camera roll")
-                return .failure(SaveError.failedSaving)
+                throw SaveError.failedSaving
             }
         } else {
-            return .failure(SaveError.corruptData)
+            throw SaveError.corruptData
         }
     }
 }
 
-extension CameraModel {
-    enum SaveError: Error {
+extension Camera {
+    enum SaveError: LocalizedError {
         case notAuhtorized, failedSaving, corruptData
         
-        var customDescription: String {
+        var errorDescription: String? {
             switch self {
             case .notAuhtorized:
                 return "App is not authorized to save photos"
@@ -201,6 +202,23 @@ extension CameraModel {
                 return "Error saving photo"
             case .corruptData:
                 return "Capture output was corrupted"
+            }
+        }
+    }
+    
+    enum State {
+        case unknown, authorized, notAuthorized, noDeviceFound
+        
+        var description: String {
+            switch self {
+            case .unknown:
+                return "The cameras are not available right now."
+            case .authorized:
+                return "Camera use is authorized."
+            case .notAuthorized:
+                return "To use the camera, please enable camera access in your phone's Settings."
+            case .noDeviceFound:
+                return "There is no camera available for this device."
             }
         }
     }

@@ -11,7 +11,7 @@
 		DBF2A6E12B99B22C00B4A854 /* CameraView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBF2A6E02B99B22C00B4A854 /* CameraView.swift */; };
 		DBF2A6E32B99B22D00B4A854 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DBF2A6E22B99B22D00B4A854 /* Assets.xcassets */; };
 		DBF2A6E62B99B22D00B4A854 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DBF2A6E52B99B22D00B4A854 /* Preview Assets.xcassets */; };
-		DBF2A6EF2B99B29900B4A854 /* CameraModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBF2A6EE2B99B29900B4A854 /* CameraModel.swift */; };
+		DBF2A6EF2B99B29900B4A854 /* Camera.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBF2A6EE2B99B29900B4A854 /* Camera.swift */; };
 		DBF2A6F12B99B2BB00B4A854 /* CameraPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBF2A6F02B99B2BB00B4A854 /* CameraPreview.swift */; };
 /* End PBXBuildFile section */
 
@@ -21,7 +21,7 @@
 		DBF2A6E02B99B22C00B4A854 /* CameraView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraView.swift; sourceTree = "<group>"; };
 		DBF2A6E22B99B22D00B4A854 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		DBF2A6E52B99B22D00B4A854 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
-		DBF2A6EE2B99B29900B4A854 /* CameraModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraModel.swift; sourceTree = "<group>"; };
+		DBF2A6EE2B99B29900B4A854 /* Camera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Camera.swift; sourceTree = "<group>"; };
 		DBF2A6F02B99B2BB00B4A854 /* CameraPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPreview.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -75,7 +75,7 @@
 		DBF2A6EC2B99B26300B4A854 /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				DBF2A6EE2B99B29900B4A854 /* CameraModel.swift */,
+				DBF2A6EE2B99B29900B4A854 /* Camera.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -162,7 +162,7 @@
 				DBF2A6E12B99B22C00B4A854 /* CameraView.swift in Sources */,
 				DBF2A6F12B99B2BB00B4A854 /* CameraPreview.swift in Sources */,
 				DBF2A6DF2B99B22C00B4A854 /* iOSCameraAppThesisApp.swift in Sources */,
-				DBF2A6EF2B99B29900B4A854 /* CameraModel.swift in Sources */,
+				DBF2A6EF2B99B29900B4A854 /* Camera.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
